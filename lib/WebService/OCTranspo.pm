@@ -25,7 +25,7 @@ sub new
 	return $self;
 }
 
-sub schedule_for
+sub schedule_for_stop
 {
 	my( $self, $args ) = @_;
 
@@ -161,4 +161,100 @@ sub _parse_schedule
 1;
 __END__
 
+=head1 NAME
+ 
+WebService::OCTranspo - Access schedule information from www.octranspo.com
+ 
+=head1 SYNOPSIS
+ 
+    use WebService::OCTranspo;
+    # Brief but working code example(s) here showing the most common usage(s)
+ 
+    # This section will be as far as many users bother reading
+    # so make it as educational and exemplary as possible.
+  
+=head1 DESCRIPTION
+ 
+This module provides access to some of the bus schedule information
+available from OCTranspo -- the public transit service in Ottawa,
+Ontario, Canada.
+ 
+=head1 METHODS
 
+=head2 new ( ) 
+
+Creates a new WebService::OCTranspo object
+
+=head2 schedule_for_stop ( $args )
+
+Fetch schedule for a single route at a single stop.  Returns a
+WebService::OCTranspo::Schedule object for the route.  
+
+B<$args> must be a hash reference containing all of:
+
+=over 4
+
+=item stop_id
+
+The numeric ID of the bus stop.  This should be the "560 Code"
+displayed at each stop, usually used for retrieving the bus stop
+information by phone.
+
+=item route_id
+
+The bus route number.  Use integers only -- 'X' routes should omit the
+X suffix.
+
+=item date
+
+A DateTime object
+
+=back
+ 
+=head1 DIAGNOSTICS
+ 
+A list of every error and warning message that the module can generate
+(even the ones that will "never happen"), with a full explanation of
+each problem, one or more likely causes, and any suggested remedies.
+ 
+=head1 CONFIGURATION AND ENVIRONMENT
+
+A full explanation of any configuration system(s) used by the module,
+including the names and locations of any configuration files, and the
+meaning of any environment variables or properties that can be set.
+These descriptions must also include details of any configuration
+language used.
+ 
+=head1 DEPENDENCIES
+
+A list of all the other modules that this module relies upon, including
+any restrictions on versions, and an indication whether these required
+modules are part of the standard Perl distribution, part of the
+module's distribution, or must be installed separately.
+
+=head1 INCOMPATIBILITIES
+
+A list of any modules that this module cannot be used in conjunction
+with.  This may be due to name conflicts in the interface, or
+competition for system or program resources, or due to internal
+limitations of Perl (for example, many modules that use source code
+filters are mutually incompatible).
+
+There are no known incompatibilities with this module.
+ 
+=head1 BUGS AND LIMITATIONS
+ 
+There are no known bugs in this module. 
+Please report problems to the author.
+Patches are welcome.
+ 
+=head1 AUTHOR
+ 
+Dave O'Neill (dmo@dmo.ca)
+ 
+=head1 LICENCE AND COPYRIGHT
+
+Copyright (C) 2007 Dave O'Neill
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
