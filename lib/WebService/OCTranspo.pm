@@ -43,8 +43,14 @@ sub schedule_for_stop
 
 	$self->_reset();
 	$self->_select_date( $args->{date} );
-	$self->_select_stop( $args->{stop_id} );
-	$self->_select_route( $args->{route_id} );
+
+	if( ! $self->_select_stop( $args->{stop_id} ) ) {
+		die "Stop $args->{stop_id} does not seem to exist";
+	}
+
+	if( !  $self->_select_route( $args->{route_id} ) ) {
+		die "Route $args->{route_id} does not service that stop";
+	}
 	
 	return $self->_parse_schedule();
 }
@@ -87,6 +93,8 @@ sub _select_date
 
 	warn 'Submitting date form' if DEBUG;
 	$self->{mech}->click();
+
+	return 1;
 }
 
 sub _select_stop
@@ -101,11 +109,14 @@ sub _select_stop
 	$self->{mech}->click();
 
 	# Confirm the stop
+	# TODO: need to return failure if stop does not exist
 	warn 'Selecting stop confirm form' if DEBUG;
 	$self->{mech}->form_name('spt_confirm560');
 	warn $self->{mech}->current_form->dump if DEBUG;
 	warn 'Submitting stop confirm form' if DEBUG;
 	$self->{mech}->click();
+
+	return 1;
 }
 
 sub _select_route
@@ -118,13 +129,18 @@ sub _select_route
 	# the appropriate checkbox
 	# b) if it's not, parse the output for the stop data
 	warn "Looking for $route_id" if DEBUG;
-	if( my ($checkname) = $self->{mech}->content =~ m{<label for="(check\d+)">$route_id}o ) {
+	my $found = 0;
+	if( my ($checkname) = $self->{mech}->content =~ m{<label for="(check\d+)">$route_id\b}o ) {
 		warn "Got checkbox name $checkname" if DEBUG;
+		$found = 1;
+
 		$self->{mech}->form_name('spt_selectRoutes');
 		warn $self->{mech}->current_form->dump if DEBUG;
 		$self->{mech}->current_form()->force_value($checkname, 1);
 		$self->{mech}->click();
 	}
+
+	return $found;
 }
 
 sub _parse_schedule
@@ -255,9 +271,19 @@ filters are mutually incompatible).
 There are no known incompatibilities with this module.
  
 =head1 BUGS AND LIMITATIONS
+
+Current known issues:
+
+=over 4
+
+=item *
+
+If the desired route leaves a stop in more than one direction (ie:
+Transitway stations) the module does not handle it correctly.
+
+=back
  
-There are no known bugs in this module. 
-Please report problems to the author.
+Please report any new problems to the author.
 Patches are welcome.
  
 =head1 AUTHOR
