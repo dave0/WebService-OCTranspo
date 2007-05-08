@@ -1,4 +1,10 @@
 Revision history for WebService-OCTranspo
 
+0.011	Tue, 08 May 2007 19:25:08 -0400 dmo
+	- only match full route number, not a partial (solves '1' matching for route 111 stops)
+	- Error handling for routes that don't exist
+	- note bug with Transitway stations
+
+
 0.010	Mon, 07 May 2007 23:44:03 -0400 dmo
         First version, released on an unsuspecting world.
