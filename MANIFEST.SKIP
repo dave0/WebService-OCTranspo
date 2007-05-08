@@ -1,0 +1,8 @@
+^WebService-OCTranspo-
+^\.git/
+^blib/
+^script/
+^MANIFEST\.
+^Makefile$
+~$
+\.bak$
