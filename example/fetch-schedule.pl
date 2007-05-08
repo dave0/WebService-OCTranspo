@@ -9,7 +9,7 @@ my $date  = DateTime->now();
 
 my $oc = WebService::OCTranspo->new();
 
-my $s  = $oc->schedule_for({
+my $s  = $oc->schedule_for_stop({
 	stop_id  => $stop,
 	route_id => $route,
 	date     => $date,

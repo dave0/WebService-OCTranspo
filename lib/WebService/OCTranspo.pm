@@ -8,13 +8,19 @@ use HTML::TableExtract;
 
 use Carp;
 
-our $VERSION = '0.010';
+our $VERSION = '0.011';
 
-use constant DEBUG => 0;
+my $DEBUG = 0;
+sub DEBUG { $DEBUG };
 
 sub new
 {
-	my ($class) = @_;
+	my ($class, $args) = @_;
+
+	if( $args->{debug} ) {
+		$DEBUG = $args->{debug};
+	}
+
 	my $self = {};
 	$self->{mech} = WWW::Mechanize->new(
 		cookie_jar => {},
@@ -130,6 +136,8 @@ sub _parse_schedule
 		'notes' => [],
 	);
 
+	warn $self->{mech}->content if DEBUG;
+
 	my $te = HTML::TableExtract->new( attribs => { class => 'spt_table' } );
 	$te->parse( $self->{mech}->content );
 
@@ -148,11 +156,15 @@ sub _parse_schedule
 		}
 	}
 
-	$te = HTML::TableExtract->new( headers => [ 'Stop Note Information' ] );
-	$te->parse( $self->{mech}->content );
+	warn "Now looking for stop note info" if DEBUG;
 
-	foreach my $row ($te->rows) {
-		push @{$schedule{'notes'}}, $row->[0];
+	$te = HTML::TableExtract->new( headers => [ 'Stop Note Information' ] );
+	$te->parse( $self->{mech}->content ) ;
+
+	if( $te->tables ) { 
+		foreach my $row ($te->rows) {
+			push @{$schedule{'notes'}}, $row->[0];
+		}
 	}
 
 	return \%schedule;
