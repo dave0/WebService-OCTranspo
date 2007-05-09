@@ -5,6 +5,7 @@ use warnings;
 use WWW::Mechanize;
 use HTML::Form::ForceValue;
 use HTML::TableExtract;
+use HTTP::Status;
 
 use Carp;
 
@@ -21,10 +22,13 @@ sub new
 		$DEBUG = $args->{debug};
 	}
 
-	my $self = {};
+	my $self = {
+		stop_data => {},
+	};
 	$self->{mech} = WWW::Mechanize->new(
 		cookie_jar => {},
 		agent      => 'WebService-OCTranspo/' . $VERSION,
+		quiet      => 1,
 	);
 
 	bless $self, $class;
@@ -48,21 +52,28 @@ sub schedule_for_stop
 		die "Stop $args->{stop_id} does not seem to exist";
 	}
 
+	$self->{stop_data}{stop_number} = $args->{stop_id};
+
 	if( !  $self->_select_route( $args->{route_id} ) ) {
 		die "Route $args->{route_id} does not service that stop";
 	}
-	
+
+	$self->{stop_data}{route_number} = $args->{route_id};
+
 	return $self->_parse_schedule();
 }
 
 sub _reset
 {
 	my ($self) = @_;
-	# First, get the form page
+
+	$self->{stop_data} = {};
+	# Get the form page
 	warn 'Fetching start page for new session' if DEBUG;
 
 	# More evil.  Their broken HTML has an <input type='input' ...>
-	# which is completely invalid.  So... catch the warning
+	# which is completely invalid.  So... catch the warning from
+	# HTML::Form and ignore it.
 	local $SIG{__WARN__} = sub {
 		warn $_[0] unless $_[0] =~ m/^Unknown input type 'input' at/;
 	};
@@ -109,14 +120,44 @@ sub _select_stop
 	$self->{mech}->click();
 
 	# Confirm the stop
-	# TODO: need to return failure if stop does not exist
 	warn 'Selecting stop confirm form' if DEBUG;
-	$self->{mech}->form_name('spt_confirm560');
-	warn $self->{mech}->current_form->dump if DEBUG;
+	if( ! defined $self->{mech}->form_name('spt_confirm560') ) {
+		return 0;
+	}
+	warn $self->{mech}->current_form->dump if DEBUG > 1;
+
+	$self->{stop_data}{stop_name} = $self->_extract_stop_name(
+		$stop_id,
+		$self->{mech}->content
+	);
+
 	warn 'Submitting stop confirm form' if DEBUG;
 	$self->{mech}->click();
 
 	return 1;
+}
+
+sub _extract_stop_name
+{
+	my ($self, $stop_id, $content) = @_; 
+	warn "Looking for stop name in page content" if DEBUG;
+
+	my ($name) = $content =~ m{
+		Is\sthis\sthe\sright\sbus\sstop\?</div>
+		\s+
+		\($stop_id\)
+		\s+
+		([^<]+)<
+	}sx;
+
+	if( $name ) {
+		$name =~ s/\s+$//;
+		warn "Found name $name" if DEBUG;
+
+		return $name;
+	}
+
+	return 'unknown';
 }
 
 sub _select_route
@@ -128,31 +169,42 @@ sub _select_route
 	# a) if it's asking for a route number, find the one we want and select
 	# the appropriate checkbox
 	# b) if it's not, parse the output for the stop data
+	if( ! defined $self->{mech}->form_name('spt_selectRoutes') ) {
+		# No route form, so it's a single-route stop
+		return 1;
+	}
 	warn "Looking for $route_id" if DEBUG;
-	my $found = 0;
-	if( my ($checkname) = $self->{mech}->content =~ m{<label for="(check\d+)">$route_id\b}o ) {
-		warn "Got checkbox name $checkname" if DEBUG;
-		$found = 1;
 
-		$self->{mech}->form_name('spt_selectRoutes');
-		warn $self->{mech}->current_form->dump if DEBUG;
-		$self->{mech}->current_form()->force_value($checkname, 1);
-		$self->{mech}->click();
+	my ($checkname) = $self->{mech}->content =~ m{<label for="(check\d+)">$route_id\b}o;
+
+	if( !$checkname ) {
+		return 0;
 	}
 
-	return $found;
+	warn "Got checkbox name $checkname" if DEBUG;
+
+	$self->{mech}->form_name('spt_selectRoutes');
+	warn $self->{mech}->current_form->dump if DEBUG;
+	$self->{mech}->current_form()->force_value($checkname, 1);
+	$self->{mech}->click();
+
+	return 1;
 }
 
 sub _parse_schedule
 {
 	my ($self) = @_;
 
-	my %schedule = (
-		'times' => [],
-		'notes' => [],
+	$self->{stop_data}{route_name} = $self->_extract_route_name(
+		$self->{stop_data}{route_number},
+		$self->{mech}->content,
 	);
 
-	warn $self->{mech}->content if DEBUG;
+	my %schedule = %{ $self->{stop_data} };
+	$schedule{times} = [];
+	$schedule{notes} = [];
+
+	warn $self->{mech}->content if DEBUG > 2;
 
 	my $te = HTML::TableExtract->new( attribs => { class => 'spt_table' } );
 	$te->parse( $self->{mech}->content );
@@ -186,6 +238,29 @@ sub _parse_schedule
 	return \%schedule;
 }
 
+sub _extract_route_name
+{
+	my ($self, $route_id, $content) = @_; 
+	warn "Looking for route name in page content" if DEBUG;
+
+	my ($name) = $content =~ m{
+		$route_id
+		\s
+		-
+		\s
+		([^<]+)
+	}sx;
+
+	if( $name ) {
+		$name =~ s/\s+$//;
+		warn "Found name $name" if DEBUG;
+
+		return $name;
+	}
+
+	return 'unknown';
+}
+
 1;
 __END__
 
@@ -215,8 +290,10 @@ Creates a new WebService::OCTranspo object
 
 =head2 schedule_for_stop ( $args )
 
-Fetch schedule for a single route at a single stop.  Returns a
-WebService::OCTranspo::Schedule object for the route.  
+Fetch schedule for a single route at a single stop.  Returns reference
+to hash containing schedule info for that route at that stop.
+
+TODO: schedule_for_stop should return an object, not a hashref.
 
 B<$args> must be a hash reference containing all of:
 
@@ -238,37 +315,57 @@ X suffix.
 A DateTime object
 
 =back
- 
-=head1 DIAGNOSTICS
- 
-A list of every error and warning message that the module can generate
-(even the ones that will "never happen"), with a full explanation of
-each problem, one or more likely causes, and any suggested remedies.
- 
-=head1 CONFIGURATION AND ENVIRONMENT
 
-A full explanation of any configuration system(s) used by the module,
-including the names and locations of any configuration files, and the
-meaning of any environment variables or properties that can be set.
-These descriptions must also include details of any configuration
-language used.
+Return hashref contains:
+
+=over 4
+
+=item stop_number
+
+4-digit OC Transpo stop number
+
+=item stop_name
+
+Name of stop, or 'unknown' if not found
+
+=item route_number
+
+1 to 3 digit OC Transpo route number
+
+=item route_name
+
+Name of route, or 'unknown' if not found
+
+=item times
+
+Reference to array of scalars representing stop times in local Ottawa
+time.  Time values will be in one of two formats:  C<HH:MM> for plain
+times with no modifier, and C<HH:MM (X)> where X is the identifier of a
+route note mentioned in the B<notes> section of the returned data.
+
+=item notes
+
+Reference to array of scalars representing route notes.
+
+TODO: this should be a hashref
+
+=back
+
+=head1 DIAGNOSTICS
+
+C<schedule_for_stop()> will die() if the stop is not found, the route
+is not found, as well as on any WWW::Mechanize or HTML::Form errors
+that might be thrown.
  
 =head1 DEPENDENCIES
 
-A list of all the other modules that this module relies upon, including
-any restrictions on versions, and an indication whether these required
-modules are part of the standard Perl distribution, part of the
-module's distribution, or must be installed separately.
+L<WWW::Mechanize>, L<HTML::Form::ForceValue>, L<HTML::TableExtract>, 
+L<HTTP::Status>
 
 =head1 INCOMPATIBILITIES
 
-A list of any modules that this module cannot be used in conjunction
-with.  This may be due to name conflicts in the interface, or
-competition for system or program resources, or due to internal
-limitations of Perl (for example, many modules that use source code
-filters are mutually incompatible).
-
-There are no known incompatibilities with this module.
+There are no known incompatibilities with this module, but they
+probably do exist.
  
 =head1 BUGS AND LIMITATIONS
 
@@ -279,7 +376,8 @@ Current known issues:
 =item *
 
 If the desired route leaves a stop in more than one direction (ie:
-Transitway stations) the module does not handle it correctly.
+Transitway stations) this module will only show the first one found on
+the page.  Some way of specifying direction is needed.
 
 =back
  
