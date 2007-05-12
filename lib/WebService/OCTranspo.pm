@@ -179,7 +179,7 @@ sub _select_route
 	}
 	warn "Looking for $route_id" if DEBUG;
 
-	my ($checkname) = $self->{mech}->content =~ m{<label for="(check\d+)">$route_id\b}o;
+	my ($checkname) = $self->{mech}->content =~ m{<label for="(check\d+)">$route_id\b};
 
 	if( !$checkname ) {
 		return 0;
