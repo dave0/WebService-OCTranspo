@@ -206,7 +206,7 @@ sub _parse_schedule
 
 	my %schedule = %{ $self->{stop_data} };
 	$schedule{times} = [];
-	$schedule{notes} = [];
+	$schedule{notes} = {};
 
 	warn $self->{mech}->content if DEBUG > 2;
 
@@ -235,7 +235,8 @@ sub _parse_schedule
 
 	if( $te->tables ) { 
 		foreach my $row ($te->rows) {
-			push @{$schedule{'notes'}}, $row->[0];
+			my ($key, $value) = split(/\s*-\s*/, $row->[0], 2);
+			$schedule{notes}{$key} = $value;
 		}
 	}
 

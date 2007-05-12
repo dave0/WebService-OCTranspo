@@ -5,7 +5,7 @@ use WebService::OCTranspo;
 
 my $stop  = shift or die q{stop number};
 my $route = shift or die q{route number};
-my $date  = DateTime->now();
+my $date  = DateTime->now()->subtract(days=>1);
 
 my $oc = WebService::OCTranspo->new();
 
@@ -18,5 +18,5 @@ my $s  = $oc->schedule_for_stop({
 print 
 	join("\n", @{ $s->{times} } ),
 	"\n",
-	join("\n", @{ $s->{notes} } ),
+	join("\n", map { "$_ => $s->{notes}{$_}" } keys %{ $s->{notes} } ),
 	"\n";

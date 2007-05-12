@@ -27,5 +27,5 @@ foreach my $timestr ( @{ $s->{times} } ) {
 	}
 }
 
-print join("\n", @{ $s->{notes} } ),
+print join("\n", map { "$_ => $s->{notes}{$_}" } keys %{ $s->{notes} } ),
 	"\n";
