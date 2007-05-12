@@ -1,6 +1,7 @@
 ^WebService-OCTranspo-
 ^\.git/
 ^blib/
+pm_to_blib
 ^script/
 ^MANIFEST\.
 ^Makefile$
