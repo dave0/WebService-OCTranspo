@@ -20,7 +20,6 @@ print "  departing $s->{stop_name} ($s->{stop_number})\n";
 foreach my $timestr ( @{ $s->{times} } ) {
 	my ($hh,$mm) = $timestr =~ m/^(\d+):(\d+)/;
 	my $then = DateTime->now
-		->set_time_zone('America/New_York')
 		->set_hour($hh)
 		->set_minute($mm);
 	if( $then > $now ) {

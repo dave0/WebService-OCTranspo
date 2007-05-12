@@ -41,12 +41,16 @@ sub schedule_for_stop
 
 	foreach my $key ( qw( stop_id route_id date) ) {
 		if( ! exists $args->{$key} ) {
-			croak qq{$key argument required for schedule_for()};
+			croak qq{$key argument required for schedule_for_stop()};
 		}
 	}
 
+	# Force date into Eastern time, if it isn't already
+	$args->{date}->set_time_zone('America/Toronto');
+
 	$self->_reset();
 	$self->_select_date( $args->{date} );
+	$self->{stop_data}{date} = $args->{date};
 
 	if( ! $self->_select_stop( $args->{stop_id} ) ) {
 		die "Stop $args->{stop_id} does not seem to exist";
