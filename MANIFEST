@@ -1,4 +1,3 @@
-.gitignore
 Changes
 example/fetch-schedule.pl
 example/next-bus.pl
@@ -13,3 +12,4 @@ t/01-kwalitee.t
 t/boilerplate.t
 t/pod-coverage.t
 t/pod.t
+t/webservice.t
