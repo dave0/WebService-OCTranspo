@@ -9,7 +9,7 @@ use HTTP::Status;
 
 use Carp;
 
-our $VERSION = '0.011';
+our $VERSION = '0.025';
 
 my $DEBUG = 0;
 sub DEBUG { $DEBUG };
