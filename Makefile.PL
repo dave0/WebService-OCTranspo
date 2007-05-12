@@ -10,6 +10,10 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+	'WWW::Mechanize' => 0,
+	'HTML::Form::ForceValue' => 0,
+	'HTML::TableExtract' => 0,
+	'HTTP::Status' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'WebService-OCTranspo-*' },
