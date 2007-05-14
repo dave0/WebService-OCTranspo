@@ -9,7 +9,7 @@ use HTTP::Status;
 
 use Carp;
 
-our $VERSION = '0.026';
+our $VERSION = '0.027';
 
 my $DEBUG = 0;
 sub DEBUG { $DEBUG };
@@ -370,7 +370,7 @@ be thrown.
 =head1 DEPENDENCIES
 
 L<WWW::Mechanize>, L<HTML::Form::ForceValue>, L<HTML::TableExtract>, 
-L<HTTP::Status>
+L<HTTP::Status>, L<DateTime>
 
 =head1 INCOMPATIBILITIES
 

@@ -14,6 +14,7 @@ WriteMakefile(
 	'HTML::Form::ForceValue' => 0,
 	'HTML::TableExtract' => 0,
 	'HTTP::Status' => 0,
+	'DateTime'     => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'WebService-OCTranspo-*' },

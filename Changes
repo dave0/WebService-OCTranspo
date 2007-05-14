@@ -1,5 +1,8 @@
 Revision history for WebService-OCTranspo
 
+0.027	Mon, 14 May 2007 09:16:42 -0400	dmo
+	- specify DateTime as a dependency (argh!)
+
 0.026	Mon, 14 May 2007 09:12:52 -0400 dmo
 	- corrections to pod
 
