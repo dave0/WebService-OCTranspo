@@ -9,7 +9,7 @@ use HTTP::Status;
 
 use Carp;
 
-our $VERSION = '0.025';
+our $VERSION = '0.026';
 
 my $DEBUG = 0;
 sub DEBUG { $DEBUG };
@@ -35,6 +35,7 @@ sub new
 	return $self;
 }
 
+# TODO: schedule_for_stop should return an object, not a hashref.
 sub schedule_for_stop
 {
 	my( $self, $args ) = @_;
@@ -271,15 +272,25 @@ __END__
 
 =head1 NAME
  
-WebService::OCTranspo - Access schedule information from www.octranspo.com
+WebService::OCTranspo - Access Ottawa bus schedule information from www.octranspo.com
  
 =head1 SYNOPSIS
  
     use WebService::OCTranspo;
-    # Brief but working code example(s) here showing the most common usage(s)
- 
-    # This section will be as far as many users bother reading
-    # so make it as educational and exemplary as possible.
+    my $oc = WebService::OCTranspo->new();
+
+    my $schedule = $oc->schedule_for_stop({
+	stop_id  => $stop,
+	route_id => $route,
+	date     => DateTime->now(),
+    });
+
+    print "$s->{route_number} - $s->{route_name} departing $s->{stop_name} ($s->{stop_number})\n";
+
+    foreach my $time ( @{ $s->{times} } ) {
+	print " $time\n";
+    }
+
   
 =head1 DESCRIPTION
  
@@ -297,8 +308,6 @@ Creates a new WebService::OCTranspo object
 
 Fetch schedule for a single route at a single stop.  Returns reference
 to hash containing schedule info for that route at that stop.
-
-TODO: schedule_for_stop should return an object, not a hashref.
 
 B<$args> must be a hash reference containing all of:
 
@@ -350,18 +359,14 @@ route note mentioned in the B<notes> section of the returned data.
 
 =item notes
 
-Reference to array of scalars representing route notes.
-
-TODO: this should be a hashref
+Reference to hash, containing note_identifier => note.
 
 =back
 
-=head1 DIAGNOSTICS
+This method will C<die> if the stop is not found, the route is not
+found, as well as on any WWW::Mechanize or HTML::Form errors that might
+be thrown.
 
-C<schedule_for_stop()> will die() if the stop is not found, the route
-is not found, as well as on any WWW::Mechanize or HTML::Form errors
-that might be thrown.
- 
 =head1 DEPENDENCIES
 
 L<WWW::Mechanize>, L<HTML::Form::ForceValue>, L<HTML::TableExtract>, 
@@ -383,6 +388,21 @@ Current known issues:
 If the desired route leaves a stop in more than one direction (ie:
 Transitway stations) this module will only show the first one found on
 the page.  Some way of specifying direction is needed.
+
+=item *
+
+Stops must be specified by number, and not by name or nearest
+intersection, even though the OCTranspo website allows the alternate
+methods.
+
+=item *
+
+None of the advanced features (route planner, etc) are supported yet.
+
+=item * 
+
+Should implement shortcuts to specify a weekday, Saturday, or Sunday
+schedule instead of requiring a DateTime object.
 
 =back
  

@@ -1,5 +1,8 @@
 Revision history for WebService-OCTranspo
 
+0.026	Mon, 14 May 2007 09:12:52 -0400 dmo
+	- corrections to pod
+
 0.025	Sat, 12 May 2007 00:47:04 -0400	dmo
 	- testing added
 	- minor cleanups to prepare for CPAN release
