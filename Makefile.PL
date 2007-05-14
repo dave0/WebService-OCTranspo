@@ -8,6 +8,7 @@ WriteMakefile(
     VERSION_FROM        => 'lib/WebService/OCTranspo.pm',
     ABSTRACT_FROM       => 'lib/WebService/OCTranspo.pm',
     PL_FILES            => {},
+    LICENSE             => 'perl',
     PREREQ_PM => {
         'Test::More' => 0,
 	'WWW::Mechanize' => 0,
