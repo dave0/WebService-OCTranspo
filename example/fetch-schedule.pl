@@ -15,6 +15,9 @@ my $s  = $oc->schedule_for_stop({
 	date     => $date,
 });
 
+print "Route: $s->{route_name}\n";
+print "Stop: $s->{stop_name}\n";
+
 print 
 	join("\n", @{ $s->{times} } ),
 	"\n",
