@@ -1,0 +1,27 @@
+API todos:	
+	- (important!) ability to specify directionality, for stop numbers that
+	  service both directions of a route.  Transitway stops will not work
+	  otherwise.
+	- interface to the trip planner
+	- ability to fetch all schedules for a particular stop, rather than
+	  only one route
+	- find stops based on intersections, landmarks, etc, rather than by
+	  stop number.  Particularly useful would be fetching Transitway stops
+	  by name.
+	- documented YAML/JSON/XML/whatever format for saving/exporting schedules
+	- fetch based on 'weekday' or 'weekend' date spec, rather than an actual date
+	- specifying before/after times for finding a particular run
+	- selecting times for special routes (176X, 7A, etc)
+	- in-memory and/or on-disk caching of raw pages (LWP has support for this?)
+	- memoize schedule_for_stop() and other future calls, to avoid repeated
+	  HTTP requests in the same process for the same schedules.
+	- caching (Cache::xxx modules?) of parsed stop data for use across
+	  invocations.
+
+API user hacks:
+	- script for pretty-printing a schedule
+	- better script for re-webifying the schedule data as a REST-ish webpage
+	- SMS gateway
+	- Google Maps mashup
+	- floor wax AND dessert topping
+	- etc, etc
