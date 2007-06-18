@@ -41,8 +41,12 @@ if( ! $c->exists( $key ) ) {
 		while( $date->day_of_week >= 5 ) {
 			$date->add( days => 1 );
 		}
-	} elsif ($type eq 'weekend') {
-		while( $date->day_of_week < 5 ) {
+	} elsif ($type eq 'saturday') {
+		while( $date->day_of_week != 6 ) {
+			$date->add( days => 1 );
+		}
+	} elsif ($type eq 'sunday') {
+		while( $date->day_of_week != 7 ) {
 			$date->add( days => 1 );
 		}
 	} else {
