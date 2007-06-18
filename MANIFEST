@@ -1,6 +1,8 @@
 Changes
 example/fetch-schedule.pl
 example/next-bus.pl
+example/octranspo.xslt
+example/web-schedule.pl
 lib/WebService/OCTranspo.pm
 Makefile.PL
 MANIFEST
@@ -11,3 +13,4 @@ t/boilerplate.t
 t/pod-coverage.t
 t/pod.t
 t/webservice.t
+TODO
